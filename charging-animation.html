@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mains-Powered Insect Trap Charging</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-width: 0; overflow-x: hidden; }
+    body {
+      min-height: 100vh;
+      color: #eff8f5;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 80% 20%, rgba(45, 132, 107, .14), transparent 30rem),
+        radial-gradient(ellipse at 20% 90%, rgba(16, 89, 108, .2), transparent 35rem),
+        linear-gradient(135deg, #050c18 0%, #071827 52%, #07131c 100%);
+    }
+    body::before, body::after {
+      content: ""; position: fixed; z-index: -1; pointer-events: none; opacity: .18;
+      width: 34rem; height: 34rem; border-radius: 45% 55% 58% 42%;
+      filter: blur(2px); border: 1px solid rgba(105, 191, 130, .22);
+    }
+    body::before { top: -16rem; right: -7rem; transform: rotate(28deg); }
+    body::after { bottom: -22rem; left: -10rem; transform: rotate(-31deg); }
+    .experience { position: relative; width: min(100%, 1600px); margin: 0 auto; padding: clamp(1rem, 3vw, 2.5rem); }
+    .language-switch { position: absolute; top: clamp(1rem, 3vw, 2.5rem); right: clamp(1rem, 3vw, 2.5rem); z-index: 8; display: flex; gap: .35rem; }
+    .language-switch button { min-height: 2.2rem; padding: .35rem .7rem; color: #9fb7b0; background: rgba(7, 30, 39, .78); }
+    .language-switch button[aria-pressed="true"] { border-color: #f2cb56; color: #fff2ad; background: rgba(92, 77, 24, .34); }
+    .intro { max-width: 52rem; margin: 0 0 clamp(1rem, 2vw, 1.5rem); }
+    .eyebrow { margin: 0 0 .35rem; color: #9be4c3; font-size: .72rem; font-weight: 800; letter-spacing: .19em; }
+    h1 { margin: 0; font-size: clamp(1.7rem, 3.2vw, 3.4rem); letter-spacing: .03em; }
+    .intro > p:not(.eyebrow) { margin: .5rem 0 0; color: #b9cad2; font-size: clamp(.9rem, 1.4vw, 1.1rem); }
+    #charging-stage {
+      position: relative; width: 100%; aspect-ratio: 16 / 9;
+      perspective: 900px;
+      overflow: hidden; isolation: isolate; border: 1px solid rgba(150, 230, 211, .18);
+      border-radius: 1.2rem; background:
+        linear-gradient(115deg, rgba(7, 22, 39, .94), rgba(5, 18, 26, .75)),
+        radial-gradient(circle at 55% 55%, rgba(28, 117, 110, .17), transparent 33rem);
+      box-shadow: inset 0 0 4rem rgba(69, 204, 176, .04), 0 1.5rem 4rem rgba(0, 0, 0, .27);
+    }
+    #charging-stage::before {
+      content: ""; position: absolute; inset: 0; z-index: 0; opacity: .3;
+      background-image: linear-gradient(rgba(136, 199, 180, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(136, 199, 180, .08) 1px, transparent 1px);
+      background-size: 4rem 4rem; mask-image: linear-gradient(to right, transparent, black 25%, black 75%, transparent);
+    }
+    #charging-stage::after {
+      content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .28;
+      background:
+        radial-gradient(ellipse .8rem 1.75rem at 9% 23%, rgba(110, 173, 102, .45) 0 43%, transparent 46%),
+        radial-gradient(ellipse .72rem 1.55rem at 14% 30%, rgba(90, 153, 90, .36) 0 43%, transparent 46%),
+        radial-gradient(ellipse .9rem 1.9rem at 87% 18%, rgba(103, 169, 100, .39) 0 43%, transparent 46%),
+        radial-gradient(ellipse .7rem 1.48rem at 92% 30%, rgba(85, 142, 91, .36) 0 43%, transparent 46%),
+        radial-gradient(ellipse .76rem 1.62rem at 80% 82%, rgba(98, 161, 94, .3) 0 43%, transparent 46%),
+        radial-gradient(ellipse .65rem 1.4rem at 14% 84%, rgba(91, 151, 91, .31) 0 43%, transparent 46%);
+      mask-image: linear-gradient(115deg, black, transparent 46%, transparent 58%, black);
+    }
+    [data-part] {
+      position: absolute; z-index: 2; display: block; width: 18%; max-height: 54%; object-fit: contain;
+      filter: drop-shadow(0 .85rem 1rem rgba(0, 0, 0, .55)); transition: filter .25s ease;
+    }
+    [data-part="usb-input"] { left: 3%; top: 37%; width: 14%; max-height: 32%; }
+    [data-part="charger-module"] { left: 20%; top: 29%; width: 17%; max-height: 40%; }
+    [data-part="control-box"] { left: 41%; top: 17%; width: 20%; max-height: 48%; }
+    [data-part="control-box-open"] { left: 39%; top: 13%; width: 24%; max-height: 54%; }
+    [data-part="control-box"] { transform-origin: right center; backface-visibility: hidden; }
+    [data-part="control-box-open"] { transform-origin: center center; backface-visibility: hidden; }
+    [data-part="trap"] { right: 5%; top: 11%; width: 21%; max-height: 73%; }
+    .phase-label {
+      position: absolute; z-index: 4; margin: 0; padding: .33rem .6rem; border: 1px solid rgba(165, 232, 201, .26); border-radius: 999px;
+      background: rgba(4, 19, 28, .8); color: #dceee8; font-size: clamp(.66rem, 1vw, .85rem); line-height: 1; letter-spacing: .04em;
+      box-shadow: 0 0 .9rem rgba(72, 196, 143, .09);
+    }
+    .label-usb { left: 4%; top: 72%; } .label-module { left: 22%; top: 70%; }
+    .label-control { left: 45%; top: 72%; } .label-trap { right: 8%; top: 84%; }
+    #energy-map { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    #charging-path, #power-path { fill: none; stroke-width: .55; stroke-linecap: round; stroke-linejoin: round; opacity: .8; }
+    #charging-path { stroke: #f6c94c; filter: drop-shadow(0 0 .32rem #e9b83d); }
+    #power-path { stroke: #66d9a1; filter: drop-shadow(0 0 .32rem #45c688); }
+    .energy-particle { filter: drop-shadow(0 0 .25rem currentColor); }
+    .charging-particle { color: #ffe37a; fill: currentColor; } .power-particle { color: #82edb5; fill: currentColor; }
+    #battery-meter {
+      position: absolute; z-index: 5; left: 39%; top: 76%; width: 20%; min-width: 8rem; padding: .5rem .6rem;
+      border: 1px solid rgba(151, 231, 194, .35); border-radius: .6rem; background: rgba(4, 22, 29, .88);
+      box-shadow: 0 0 1rem rgba(74, 202, 134, .13); font-size: .8rem;
+    }
+    #battery-level { display: block; height: .35rem; width: 0%; border-radius: 999px; background: linear-gradient(90deg, #efd65b, #69dca1); transition: width .2s linear; }
+    #battery-percent { display: block; margin-top: .3rem; color: #d8f8e9; text-align: right; font-size: .95rem; }
+    #system-state { position: absolute; z-index: 5; right: 6%; top: 8%; margin: 0; color: #a8e9c5; font-size: clamp(.7rem, 1vw, .9rem); letter-spacing: .07em; }
+    #phase-indicator {
+      position: absolute; z-index: 5; left: 5%; top: 6%; display: flex; align-items: center; gap: .45rem; padding: .38rem .55rem;
+      border: 1px solid rgba(151, 231, 194, .25); border-radius: .62rem; background: rgba(4, 22, 29, .78); color: #b9d9cc;
+      font-size: clamp(.64rem, .85vw, .78rem); box-shadow: 0 0 1rem rgba(74, 202, 134, .08);
+    }
+    .phase-caption { color: #d9eee5; font-weight: 700; white-space: nowrap; }
+    #phase-indicator ol { display: flex; gap: .25rem; margin: 0; padding: 0; list-style: none; }
+    #phase-indicator li { padding: .18rem .35rem; border: 1px solid transparent; border-radius: 999px; color: #8fa9a0; line-height: 1; white-space: nowrap; }
+    #phase-indicator li.is-active { border-color: rgba(246, 201, 76, .72); background: rgba(246, 201, 76, .17); color: #fff1a9; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .controls { display: flex; justify-content: flex-end; gap: .65rem; margin-top: 1rem; }
+    button { min-height: 2.65rem; padding: .55rem 1rem; border: 1px solid rgba(149, 231, 199, .43); border-radius: .55rem; color: #ecfff6; background: #0b2a35; font: inherit; cursor: pointer; }
+    button:hover { background: #10404b; } button:focus-visible { outline: 3px solid #f2cb56; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .62; }
+    .disclaimer { margin: .9rem 0 0; color: #91a5ad; font-size: .78rem; text-align: right; }
+    .instructions { margin-top: 1rem; }
+    .instructions > h2 { margin: 0 0 .65rem; color: #dff5eb; font-size: clamp(1rem, 1.5vw, 1.25rem); }
+    .instruction-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; }
+    .instruction-card { position: relative; min-width: 0; padding: .85rem .9rem .85rem 3rem; border: 1px solid rgba(151, 231, 194, .22); border-radius: .75rem; background: rgba(5, 24, 32, .72); }
+    .instruction-card::before { content: attr(data-step); position: absolute; left: .8rem; top: .8rem; display: grid; width: 1.55rem; height: 1.55rem; place-items: center; border-radius: 50%; color: #071820; background: #9be4c3; font-size: .78rem; font-weight: 900; }
+    .instruction-card h2 { margin: 0 0 .25rem; color: #eaf9f2; font-size: .9rem; }
+    .instruction-card p { margin: 0; color: #aebfc5; font-size: .8rem; line-height: 1.5; }
+    @media (min-width: 721px) and (max-height: 950px) {
+      .experience { width: min(100%, 1160px); padding: 1rem; }
+      .intro { margin-bottom: .7rem; }
+      h1 { font-size: clamp(1.7rem, 3vw, 3rem); }
+      .controls { margin-top: .65rem; }
+      .disclaimer { margin-top: .55rem; }
+    }
+    @media (max-width: 720px) {
+      .experience { padding: 1rem; }
+      .language-switch { position: static; justify-content: flex-end; margin-bottom: .45rem; }
+      #charging-stage { aspect-ratio: auto; min-height: 34rem; }
+      [data-part] { max-height: none; }
+      [data-part="usb-input"] { left: 7%; top: 8%; width: 28%; }
+      [data-part="charger-module"] { left: 42%; top: 5%; width: 30%; }
+      [data-part="control-box"] { left: 16%; top: 29%; width: 38%; }
+      [data-part="control-box-open"] { left: 12%; top: 26%; width: 46%; }
+      [data-part="trap"] { left: 24%; right: auto; top: 58%; width: 52%; max-height: 36%; }
+      .label-usb { left: 6%; top: 21%; } .label-module { left: 47%; top: 22%; }
+      .label-control { left: 56%; top: 45%; } .label-trap { right: 10%; top: 93%; }
+      #battery-meter { left: 8%; top: 50%; width: 36%; min-width: 0; }
+      #system-state { left: 6%; right: auto; top: auto; bottom: 3%; } #phase-indicator { left: 4%; top: 3%; gap: .28rem; padding: .32rem .4rem; } #phase-indicator ol { gap: .12rem; } #phase-indicator li { padding: .17rem .27rem; } .controls { justify-content: stretch; } .controls button { flex: 1; }
+      .disclaimer { text-align: left; }
+      .instruction-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body:not(.motion-opt-in) .energy-particle { display: none; }
+      body:not(.motion-opt-in) [data-part], body:not(.motion-opt-in) #battery-level { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="experience">
+    <nav class="language-switch" aria-label="Language">
+      <button type="button" data-language="en" aria-pressed="true">EN</button>
+      <button type="button" data-language="zh" aria-pressed="false">中文</button>
+    </nav>
+    <header class="intro">
+      <p class="eyebrow">SMART PEST MONITORING</p>
+      <h1 data-i18n="title">Mains-Powered Insect Trap Charging</h1>
+      <p data-i18n="subtitle">From a Micro USB power input to an activated insect trap</p>
+    </header>
+    <section id="charging-stage" aria-label="Insect trap charging animation" data-i18n-aria="stageLabel">
+      <img data-part="usb-input" src="charging-animation-assets/micro-usb-plug.png" alt="Micro USB charging cable from the mains adapter" data-i18n-alt="usbAlt">
+      <img data-part="charger-module" src="charging-animation-assets/charger-module.png" alt="Blue charging module" data-i18n-alt="moduleAlt">
+      <img data-part="control-box" src="charging-animation-assets/control-box.png" alt="Closed white control box" data-i18n-alt="closedBoxAlt">
+      <img data-part="control-box-open" src="charging-animation-assets/control-box-open.png" alt="Open control box showing its circuit board and internal battery" data-i18n-alt="openBoxAlt">
+      <img data-part="trap" src="charging-animation-assets/trap.png" alt="Insect trap device" data-i18n-alt="trapAlt">
+      <svg id="energy-map" aria-hidden="true" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path id="charging-path" d="M 12 56 C 22 56, 24 48, 30 48 S 45 58, 49 58" pathLength="100"></path>
+        <path id="power-path" d="M 51 59 C 62 64, 70 58, 82 53" pathLength="100"></path>
+        <circle class="energy-particle charging-particle" cx="18" cy="54" r=".85"></circle>
+        <circle class="energy-particle charging-particle" cx="35" cy="50" r=".65"></circle>
+        <circle class="energy-particle power-particle" cx="67" cy="60" r=".85"></circle>
+      </svg>
+      <p class="phase-label label-usb" data-i18n="usbLabel">Micro USB input</p>
+      <p class="phase-label label-module" data-i18n="moduleLabel">Charging module</p>
+      <p class="phase-label label-control" data-i18n="controlLabel">Control box</p>
+      <p class="phase-label label-trap" data-i18n="trapLabel">Insect trap</p>
+      <div id="battery-meter" aria-label="Battery level" data-i18n-aria="batteryLabel"><span id="battery-level"></span><strong id="battery-percent">0%</strong></div>
+      <p id="system-state" aria-live="polite">Preparing</p>
+      <div id="phase-indicator" data-phase="ready" aria-label="Process phase: Ready">
+        <span class="phase-caption" data-i18n="phaseCaption">Process phase</span>
+        <ol aria-label="Animation progress" data-i18n-aria="progressLabel">
+          <li data-progress-phase="breakdown" data-i18n="breakdown">Breakdown</li>
+          <li data-progress-phase="charging" data-i18n="charging">Charging</li>
+          <li data-progress-phase="activation" data-i18n="activation">Activation</li>
+        </ol>
+      </div>
+      <p id="phase-status" class="sr-only" role="status" aria-live="polite">Current process phase: Ready</p>
+    </section>
+    <nav class="controls" aria-label="Animation controls" data-i18n-aria="controlsLabel">
+      <button id="toggle-play" type="button">Pause</button>
+      <button id="replay" type="button">Replay</button>
+    </nav>
+    <section class="instructions" aria-labelledby="instructions-title">
+      <h2 id="instructions-title" data-i18n="instructionsTitle">How to charge</h2>
+      <div class="instruction-grid">
+        <article class="instruction-card" data-step="1"><h2 data-i18n="step1Title">Take out the connector</h2><p data-i18n="step1Text">Take out the Micro USB connector.</p></article>
+        <article class="instruction-card" data-step="2"><h2 data-i18n="step2Title">Find the charging module</h2><p data-i18n="step2Text">Open the control box and locate the charging module inside.</p></article>
+        <article class="instruction-card" data-step="3"><h2 data-i18n="step3Title">Connect and charge</h2><p data-i18n="step3Text">Insert the Micro USB plug into the charging module to begin charging.</p></article>
+      </div>
+    </section>
+    <p class="disclaimer" data-i18n="disclaimer">Mains power enters through an adapter and Micro USB. The charging path is illustrative; follow the actual device specifications for wiring.</p>
+  </main>
+  <script src="charging-animation-assets/anime.umd.min.js"></script>
+  <script src="charging-animation-assets/charging-animation.js"></script>
+</body>
+</html>
